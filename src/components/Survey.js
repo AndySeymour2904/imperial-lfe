@@ -1,5 +1,5 @@
-import React from 'react'
-import { TextField, Typography } from '@material-ui/core'
+import React, {useEffect, useState} from 'react'
+import { Button, TextField, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles({
@@ -12,7 +12,18 @@ const useStyles = makeStyles({
 function Survey() {
   const classes = useStyles()
 
-  const [formValues, setFormValues] = React.useState({})
+  const [formValues, setFormValues] = useState({})
+  const [step, setStep] = useState(-1)
+
+  useEffect(
+    () => {
+      document.addEventListener('keyup', handleKeyUp);
+      
+      return () => {
+        document.removeEventListener('keyup', handleKeyUp);
+      }
+    }
+  )
 
   const questions = {
     "email": "What is your email address?",
@@ -25,6 +36,7 @@ function Survey() {
     "values": "Which of the trust's values does this demonstrate?"
   }
 
+  const numQuestions = Object.keys(questions).length
   const handleInputChange = e => {
     setFormValues({...formValues, [e.target.name]: e.target.value})
   }
@@ -34,15 +46,65 @@ function Survey() {
     alert(JSON.stringify(formValues, 2, "\n"))
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
+  const handleStepChange = (increment) => () => {
+    setStep(step + increment)
+  }
+
+  const handleRestart = () => {
+    setStep(-1)
+    setFormValues({})
+  }
+
+  const renderQuestion = () => {
+    const [key, question] = Object.entries(questions)[step]
+    return (
       <div className={classes.section}>
-        {Object.entries(questions).map(([key, question]) => (
-          <TextField key={key} onChange={handleInputChange} name={key} label={question} value={formValues[key]} />
-        ))}
+        <TextField autoComplete='off' autoFocus key={key} onChange={handleInputChange} name={key} label={question} value={formValues[key]} />
+        <Button color='primary' variant='contained' disabled={!formValues[key]} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
+        {formValues[key] && <Typography>or press Enter {`\u21B5`}</Typography>}
       </div>
-      <input type="submit" value="Submit" />
-    </form>
+    )
+  }
+
+  const handleKeyUp = (event) => {
+    if (event.keyCode === 13 && step < numQuestions) {
+      if (step === -1) {
+        handleStepChange(1)()
+      } else if (formValues[Object.keys(questions)[step]]) {
+        handleStepChange(1)()
+      }
+    }
+  }
+
+
+  return (
+    <div>
+      <div>
+        <Typography>Debug</Typography>
+        <p>{'step: ' + step}</p>
+        <p>{'formValues: ' + JSON.stringify(formValues)}</p>
+      </div>
+      {step === -1 && (
+        <div>
+          <Typography>Welcome to the survey</Typography>
+          <Button color='primary' variant='contained' onClick={handleStepChange(1)}>Start</Button>
+        </div>
+      )}
+      {step >= 0 && step < numQuestions && renderQuestion()}
+      {step === numQuestions && (
+        <div>
+          <Typography>Review and submit</Typography>
+          <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
+          <Button color='primary' variant='contained' onClick={handleStepChange(1)}>Submit</Button>
+        </div>
+      )}
+      {step === numQuestions + 1 && (
+        <div>
+          <Typography>Thank you your response has been submitted</Typography>
+          <Button color='primary' variant='contained' onClick={handleRestart}>Restart</Button>
+        </div>
+      )}
+    </div>
   )
 }
 
