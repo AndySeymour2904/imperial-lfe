@@ -5,7 +5,42 @@ import { makeStyles } from '@material-ui/core/styles'
 const useStyles = makeStyles({
   section: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  survey: {
+    display: 'flex',
+    minHeight: '100vh',
+  },
+  introText: {
+    padding: '10px',
+  },
+  questionContainer: {
+    width: '80vw',
+    minWidth: '200px',
+    maxWidth: '400px',
+    flexDirection: 'column',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  questionField: {
+    width: '100%',
+  },
+  nextBtn: {
+    marginTop: '15px',
+  },
+  backBtnContainer: {
+    width: '100%',
+  },
+  backBtn: {
+    cursor: 'pointer',
+    color: 'darkgrey',
+    "&:hover": {
+      color: 'grey',
+    },
+    marginBottom: '50px',
   },
 });
 
@@ -59,9 +94,14 @@ function Survey() {
     const [key, question] = Object.entries(questions)[step]
     return (
       <div className={classes.section}>
-        <TextField autoComplete='off' autoFocus key={key} onChange={handleInputChange} name={key} label={question} value={formValues[key]} />
-        <Button color='primary' variant='contained' disabled={!formValues[key]} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
-        {formValues[key] && <Typography>or press Enter {`\u21B5`}</Typography>}
+        <div className={classes.questionContainer}>
+          <div className={classes.backBtnContainer}>
+            <Typography variant='body2' classes={{root: classes.backBtn}} onClick={handleStepChange(-1)}>{'< Back'}</Typography>
+          </div>
+          <TextField classes={{root: classes.questionField}} utoComplete='off' autoFocus key={key} onChange={handleInputChange} name={key} label={question} value={formValues[key]} />
+          <Button classes={{root: classes.nextBtn}} color='primary' variant='contained' disabled={!formValues[key]} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
+          {formValues[key] && <Typography>or press Enter {`\u21B5`}</Typography>}
+        </div>
       </div>
     )
   }
@@ -78,28 +118,25 @@ function Survey() {
 
 
   return (
-    <div>
-      <div>
-        <Typography>Debug</Typography>
-        <p>{'step: ' + step}</p>
-        <p>{'formValues: ' + JSON.stringify(formValues)}</p>
-      </div>
+    <div className={classes.survey}>
       {step === -1 && (
-        <div>
-          <Typography>Welcome to the survey</Typography>
+        <div className={classes.section}>
+          <Typography classes={{root: classes.introText}}>Hello from the Imperial Learning from Excellence Team, and thank you for appreciating the work of a colleague today.</Typography>
+          <Typography classes={{root: classes.introText}}>We will write to the person you are reporting to let them know. Evidence shows that both being appreciated, and also appreciating someone else makes people feel happy - and that makes this time well spent.</Typography>
+          <Typography classes={{root: classes.introText}}>We also want to investigate good work. We want to understand the causes, learn and build on these good practices. You can tell us about anybody, from any team and any organisation.</Typography>
           <Button color='primary' variant='contained' onClick={handleStepChange(1)}>Start</Button>
         </div>
       )}
       {step >= 0 && step < numQuestions && renderQuestion()}
       {step === numQuestions && (
-        <div>
+        <div className={classes.section}>
           <Typography>Review and submit</Typography>
           <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
           <Button color='primary' variant='contained' onClick={handleStepChange(1)}>Submit</Button>
         </div>
       )}
       {step === numQuestions + 1 && (
-        <div>
+        <div className={classes.section}>
           <Typography>Thank you your response has been submitted</Typography>
           <Button color='primary' variant='contained' onClick={handleRestart}>Restart</Button>
         </div>
