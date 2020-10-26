@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react'
 import { Button, TextField, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
+import { fetchUrl } from '../utils/fetch-utils'
+
 const useStyles = makeStyles({
   section: {
     display: 'flex',
@@ -67,8 +69,8 @@ function Survey() {
     "excelleeName": "Name of the person who has excelled",
     "excelleePosition": "What is their role / job title and where do they work?",
     "excellence": "Describe what was done that shows excellence",
-    "learn": "What can the organisation learn from this example?",
-    "values": "Which of the trust's values does this demonstrate?"
+    "whatCanWeLearn": "What can the organisation learn from this example?",
+    "valuesDemonstrated": "Which of the trust's values does this demonstrate?"
   }
 
   const numQuestions = Object.keys(questions).length
@@ -76,9 +78,23 @@ function Survey() {
     setFormValues({...formValues, [e.target.name]: e.target.value})
   }
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault()
-    alert(JSON.stringify(formValues, 2, "\n"))
+
+    try {
+      await fetchUrl('https://lj09fb8vbg.execute-api.eu-west-2.amazonaws.com/prod/form', {
+        method: 'POST',
+        body: JSON.stringify(formValues),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+      })
+      
+      handleStepChange(1)()
+    } catch (err) {
+      alert(err)
+    }
+
   }
 
   const handleStepChange = (increment) => () => {
@@ -132,7 +148,7 @@ function Survey() {
         <div className={classes.section}>
           <Typography>Review and submit</Typography>
           <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
-          <Button color='primary' variant='contained' onClick={handleStepChange(1)}>Submit</Button>
+          <Button color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
         </div>
       )}
       {step === numQuestions + 1 && (
