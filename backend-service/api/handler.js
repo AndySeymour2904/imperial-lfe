@@ -4,6 +4,7 @@ const AWS = require('aws-sdk')
 AWS.config.setPromisesDependency(require('bluebird'))
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
+const SES = new AWS.SES({region: 'eu-west-2'});
 
 module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
@@ -12,7 +13,20 @@ module.exports.submit = async (event, context, callback) => {
     const res = await submitFormAnswers(bodyToRecord(requestBody))
 
     console.log(`Successfully submitted form answers; ${event.body}`)
-    
+
+    const sesParams = {
+      Template: "TestTemplate",
+      Destination: {
+          ToAddresses: [requestBody.excelleeEmail]
+      },
+      Source: requestBody.email,
+      TemplateData: JSON.stringify(requestBody)
+    }
+
+    console.log(sesParams)
+
+    await SES.sendTemplatedEmail(sesParams).promise()
+
     callback(null, {
       statusCode: 200,
       headers: {

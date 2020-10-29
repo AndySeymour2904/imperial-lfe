@@ -18,6 +18,9 @@ provider:
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
+        - ses:SendEmail
+        - ses:SendTemplatedEmail
+        - ses:SendRawEmail
       Resource: "*"
 
 functions:
