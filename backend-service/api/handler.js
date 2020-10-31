@@ -11,8 +11,12 @@ module.exports.submit = async (event, context, callback) => {
 
   try {
     const res = await submitFormAnswers(bodyToRecord(requestBody))
-
-    console.log(`Successfully submitted form answers; ${event.body}`)
+    if (!validateEmailAddress(res.email)) {
+      console.log(`Refusing to process response; ${event.body}`)
+      return
+    } else {
+      console.log(`Successfully submitted form answers; ${event.body}`)
+    }
 
     const sesParams = {
       Template: "TestTemplate",
@@ -54,6 +58,17 @@ module.exports.submit = async (event, context, callback) => {
     })
 
   }
+}
+
+const validateEmailAddress = (email) => {
+  // \todo - check with Mark about what a reasonable set of domains would be
+  valideDomains = ['@nhs.net']
+  for (var domain in valideDomains) {
+    if (email.includes(domain)) {
+      return true
+    }
+  }
+  return false;
 }
 
 const submitFormAnswers = async formAnswers => {
