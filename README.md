@@ -6,14 +6,19 @@ http://imperial-lfe.s3-website.eu-west-2.amazonaws.com/
 
 ## Deployment
 
-Deployment requires AWS CLI to be configured, IAM user: imperial-lfe-cli
-
+Install AWS client:
 ```
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 ```
 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
+
+
+Deployment requires AWS CLI to be configured, IAM user: imperial-lfe-cli:
+```
+aws configure
+```
 
 ### Frontend
 ```
