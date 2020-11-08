@@ -1,5 +1,13 @@
 import React, {useEffect, useState} from 'react'
-import { Button, TextField, Typography } from '@material-ui/core'
+import { 
+  Button, 
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
+  TextField, 
+  Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { fetchUrl } from '../utils/fetch-utils'
@@ -49,7 +57,60 @@ const useStyles = makeStyles({
 function Survey() {
   const classes = useStyles()
 
-  const [formValues, setFormValues] = useState({})
+
+  const questions = [{
+      key: "email",
+      question: "What is your email address?",
+      type: "email"
+    }, {
+      key: "name",
+      question: "What is your name?",
+      type: "string"
+    }, {
+      key: "excelleeEmail",
+      question: "Email address of the person who has excelled",
+      type: "email"
+    }, {
+      key: "excelleeName",
+      question:  "Name of the person who has excelled",
+      type: "string"
+    }, {
+      key: "excelleePosition",
+      question: "What is their role / job title and where do they work?",
+      type: "string"
+    }, {
+      key: "excellence",
+      question: "Describe what was done that shows excellence",
+      type: "string",
+      multiline: true
+    }, {
+      key: "whatCanWeLearn",
+      question: "What can the organisation learn from this example?",
+      type: "string",
+      multiline: true
+    }, {
+      key: "valuesDemonstrated",
+      question: "Which of the trust's values does this demonstrate?",
+      type: "checkbox",
+      options: [{
+        key: "kind",
+        displayName: "Kind"
+      }, {
+        key: "collaborative",
+        displayName: "Collaborative"
+      }, {
+        key: "expert",
+        displayName: "Expert"
+      }, {
+        key: "aspirational",
+        displayName: "Aspirational"
+      }]
+    }
+  ]
+
+  // Load default state for questions
+  const [formValues, setFormValues] = useState(questions.reduce((acc, cur) => {acc[cur.key] = cur.options ? [] : ''; return acc}, {}))
+
   const [step, setStep] = useState(-1)
 
   useEffect(
@@ -62,20 +123,29 @@ function Survey() {
     }
   )
 
-  const questions = {
-    "email": "What is your email address?",
-    "name": "What is your name?",
-    "excelleeEmail": "Email address of the person who has excelled",
-    "excelleeName": "Name of the person who has excelled",
-    "excelleePosition": "What is their role / job title and where do they work?",
-    "excellence": "Describe what was done that shows excellence",
-    "whatCanWeLearn": "What can the organisation learn from this example?",
-    "valuesDemonstrated": "Which of the trust's values does this demonstrate?"
-  }
 
   const numQuestions = Object.keys(questions).length
+
   const handleInputChange = e => {
     setFormValues({...formValues, [e.target.name]: e.target.value})
+  }
+
+  const handleCheckboxChange = key => e => {
+
+    const checkboxGroupValues = [...formValues[key]]
+
+    if (checkboxGroupValues.includes(e.target.name) !== e.target.checked) {
+
+      if (e.target.checked) {
+        checkboxGroupValues.push(e.target.name)
+      } else {
+        const removeIndex = checkboxGroupValues.indexOf(e.target.name)
+        checkboxGroupValues.splice(removeIndex, 1)
+      }
+
+      setFormValues({...formValues, [key]: checkboxGroupValues})
+    }
+
   }
 
   const handleSubmit = async e => {
@@ -107,26 +177,43 @@ function Survey() {
   }
 
   const renderQuestion = () => {
-    const [key, question] = Object.entries(questions)[step]
+    const {key, question, type, multiline, options} = questions[step]
+
     return (
       <div className={classes.section}>
         <div className={classes.questionContainer}>
           <div className={classes.backBtnContainer}>
             <Typography variant='body2' classes={{root: classes.backBtn}} onClick={handleStepChange(-1)}>{'< Back'}</Typography>
           </div>
-          <TextField classes={{root: classes.questionField}} utoComplete='off' autoFocus key={key} onChange={handleInputChange} name={key} label={question} value={formValues[key]} />
+          {(type === 'email' || type === 'string') && (
+            <TextField classes={{root: classes.questionField}} multiline={multiline} autoComplete='off' autoFocus key={key} onChange={handleInputChange} 
+              name={key} label={question} value={formValues[key]} rows={8} rowsMax={15} />
+          )}
+          {type === 'checkbox' && (
+            <FormControl>
+              <FormLabel component="legend">{question}</FormLabel>
+              <FormGroup>
+                {options.map(option => (
+                  <FormControlLabel
+                    key={option.key}
+                    control={<Checkbox checked={formValues[key] && formValues[key].includes(option.key)} onChange={handleCheckboxChange(key)} name={option.key} />}
+                    label={option.displayName}
+                  />
+                ))}
+              </FormGroup>
+            </FormControl>
+          )}
           <Button classes={{root: classes.nextBtn}} color='primary' variant='contained' disabled={!formValues[key]} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
-          {formValues[key] && <Typography>or press Enter {`\u21B5`}</Typography>}
+          {multiline && formValues[key] && <Typography variant="body2">or press Shift + Enter {`\u21E7+\u21B5`}</Typography>}
+          {!multiline && formValues[key] && <Typography>or press Enter {`\u21B5`}</Typography>}
         </div>
       </div>
     )
   }
 
   const handleKeyUp = (event) => {
-    if (event.keyCode === 13 && step < numQuestions) {
-      if (step === -1) {
-        handleStepChange(1)()
-      } else if (formValues[Object.keys(questions)[step]]) {
+    if (event.keyCode === 13 && (step === - 1 || !questions[step].multiline || event.shiftKey) && step < numQuestions) {
+      if (step === -1 || formValues[questions[step].key]) {
         handleStepChange(1)()
       }
     }
