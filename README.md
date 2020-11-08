@@ -34,14 +34,6 @@ Get serverless;
 npm install -g serverless
 ```
 
-### Email templates
-
-```
-aws ses delete-template --template-name TestTemplate
-aws ses create-template --cli-input-json file://backend-service/TestTemplate.json
-```
-
-
 Deploy:
 ```
 cd backend-service
@@ -49,3 +41,16 @@ sls deploy -v
 ```
 
 This deploys the backend through API Gateway, DynamoDB, Lambdas and CloudFormation
+
+
+### Email templates
+
+```
+aws ses delete-template --template-name TestTemplate
+aws ses create-template --cli-input-json file://backend-service/TestTemplate.json
+```
+
+View:
+```
+aws ses list-templates
+```
