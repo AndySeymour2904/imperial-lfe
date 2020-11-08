@@ -3,28 +3,40 @@ const AWS = require('aws-sdk')
 
 AWS.config.setPromisesDependency(require('bluebird'))
 
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-const SES = new AWS.SES({region: 'eu-west-2'});
+const dynamoDb = new AWS.DynamoDB.DocumentClient()
+const SES = new AWS.SES({region: 'eu-west-2'})
+
+const LFE_EMAIL = "imperial.learningfromexcellence@nhs.net"
 
 module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
 
   try {
-    if (!validateEmailAddress(res.email) || !validateEmailAddress(res.excelleeEmail) {
+    if (!validateEmailAddress(res.email) || !validateEmailAddress(res.excelleeEmail)) {
       console.log(`Refusing to process response, invalid email; ${event.body}`)
       throw new Error('Email address is not valid')
     }
     
-    const sesParams = {
+    const sesExcelleeParams = {
       Template: "TestTemplate",
       Destination: {
-          ToAddresses: [requestBody.excelleeEmail]
+        ToAddresses: [requestBody.excelleeEmail]
       },
-      Source: requestBody.email,
+      Source: LFE_EMAIL,
       TemplateData: JSON.stringify(requestBody)
     }
 
-    console.log(sesParams)
+    const sesReporterParams = {
+      Template: "TestTemplate",
+      Destination: {
+        ToAddresses: [requestBody.email]
+      },
+      Source: LFE_EMAIL,
+      TemplateData: JSON.stringify(requestBody)
+    }
+
+    console.log(sesExcelleeParams)
+    console.log(sesReporterParams)
 
     await SES.sendTemplatedEmail(sesParams).promise()
     
