@@ -10,10 +10,11 @@ module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
 
   try {
-    const res = await submitFormAnswers(bodyToRecord(requestBody))
-
-    console.log(`Successfully submitted form answers; ${event.body}`)
-
+    if (!validateEmailAddress(res.email) || !validateEmailAddress(res.excelleeEmail) {
+      console.log(`Refusing to process response, invalid email; ${event.body}`)
+      throw new Error('Email address is not valid')
+    }
+    
     const sesParams = {
       Template: "TestTemplate",
       Destination: {
@@ -26,6 +27,10 @@ module.exports.submit = async (event, context, callback) => {
     console.log(sesParams)
 
     await SES.sendTemplatedEmail(sesParams).promise()
+    
+    const res = await submitFormAnswers(bodyToRecord(requestBody))
+    
+    console.log(`Successfully submitted form answers; ${event.body}`)
 
     callback(null, {
       statusCode: 200,
@@ -54,6 +59,18 @@ module.exports.submit = async (event, context, callback) => {
     })
 
   }
+}
+
+const validateEmailAddress = (email) => {
+  // \todo - check with Mark about what a reasonable set of domains would be
+  // Adding gamil for testing purposes
+  validDomains = ['@nhs.net', '@gmail.com']
+  for (var domain in validDomains) {
+    if (email.endsWith(domain)) {
+      return true
+    }
+  }
+  return false;
 }
 
 const submitFormAnswers = async formAnswers => {
