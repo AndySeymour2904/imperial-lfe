@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import { 
   Button, 
   Checkbox,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -52,6 +53,9 @@ const useStyles = makeStyles({
     },
     marginBottom: '50px',
   },
+  submittingText: {
+    paddingTop: '20px'
+  }
 });
 
 function Survey() {
@@ -110,8 +114,9 @@ function Survey() {
 
   // Load default state for questions
   const [formValues, setFormValues] = useState(questions.reduce((acc, cur) => {acc[cur.key] = cur.options ? [] : ''; return acc}, {}))
-
   const [step, setStep] = useState(-1)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [submissionError, setSubmissionError] = React.useState(null)
 
   useEffect(
     () => {
@@ -151,8 +156,10 @@ function Survey() {
   const handleSubmit = async e => {
     e.preventDefault()
 
+    setIsSubmitting(true)
+
     try {
-      await fetchUrl('https://lj09fb8vbg.execute-api.eu-west-2.amazonaws.com/prod/form', {
+      await fetchUrl('https://iench1ourg.execute-api.eu-west-2.amazonaws.com/prod/form', {
         method: 'POST',
         body: JSON.stringify(formValues),
         headers: {
@@ -160,9 +167,12 @@ function Survey() {
         }
       })
       
+      setSubmissionError(null)
       handleStepChange(1)()
     } catch (err) {
-      alert(err)
+      setSubmissionError(err)
+    } finally {
+      setIsSubmitting(false)
     }
 
   }
@@ -178,6 +188,8 @@ function Survey() {
 
   const renderQuestion = () => {
     const {key, question, type, multiline, options} = questions[step]
+
+    const isValid = (type !== 'checkbox' && formValues[key]) || (type === 'checkbox' && formValues[key].length > 0)
 
     return (
       <div className={classes.section}>
@@ -203,9 +215,9 @@ function Survey() {
               </FormGroup>
             </FormControl>
           )}
-          <Button classes={{root: classes.nextBtn}} color='primary' variant='contained' disabled={!formValues[key]} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
-          {multiline && formValues[key] && <Typography variant="body2">or press Shift + Enter {`\u21E7+\u21B5`}</Typography>}
-          {!multiline && formValues[key] && <Typography>or press Enter {`\u21B5`}</Typography>}
+          <Button classes={{root: classes.nextBtn}} color='primary' variant='contained' disabled={!isValid} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
+          {multiline && isValid && <Typography variant="body2">or press Shift + Enter {`\u21E7+\u21B5`}</Typography>}
+          {!multiline && isValid && <Typography>or press Enter {`\u21B5`}</Typography>}
         </div>
       </div>
     )
@@ -233,9 +245,26 @@ function Survey() {
       {step >= 0 && step < numQuestions && renderQuestion()}
       {step === numQuestions && (
         <div className={classes.section}>
-          <Typography>Review and submit</Typography>
-          <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
-          <Button color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
+          {!isSubmitting && !submissionError && (
+            <React.Fragment>
+              <Typography>Review and submit</Typography>
+              <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
+              <Button color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
+            </React.Fragment>
+          )}
+          {!isSubmitting && submissionError && (
+            <React.Fragment>
+              <Typography>Error</Typography>
+              <Typography variant='body1'>{JSON.stringify(submissionError)}</Typography>
+              <Button color='primary' variant='contained' onClick={handleSubmit}>Retry</Button>
+            </React.Fragment>
+          )}
+          {isSubmitting && (
+            <React.Fragment>
+              <CircularProgress size={120} />
+              <Typography className={classes.submittingText} variant='body1'>Submitting your responses, please wait</Typography>
+            </React.Fragment>
+          )}
         </div>
       )}
       {step === numQuestions + 1 && (
