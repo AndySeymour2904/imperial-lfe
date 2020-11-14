@@ -11,7 +11,11 @@ const LFE_EMAIL = "aseymour917@gmail.com"
 module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
 
+  // Allow retrying at specific points
+  let progress = requestBody.progress || 0
+
   try {
+    
     if (!validateEmailAddress(requestBody.email) || !validateEmailAddress(requestBody.excelleeEmail)) {
       console.log(`Refusing to process response, invalid email; ${event.body}`)
       throw new Error('Email address is not valid')
@@ -38,13 +42,22 @@ module.exports.submit = async (event, context, callback) => {
     console.log(sesExcelleeParams)
     console.log(sesReporterParams)
 
-    await SES.sendTemplatedEmail(sesExcelleeParams).promise()
-    await SES.sendTemplatedEmail(sesReporterParams).promise()
+    if (progress === 0) {
+      await SES.sendTemplatedEmail(sesExcelleeParams).promise()
+      progress += 1
+    }
     
-    // Don't await for form answers to be submitted
-    submitFormAnswers(bodyToRecord(requestBody)).then(() => {
-      console.log(`Successfully submitted form answers; ${event.body}`)
-    })
+    if (progress === 1) {
+      await SES.sendTemplatedEmail(sesReporterParams).promise() 
+      progress += 1
+    }
+
+    if (progress === 2) {
+      await submitFormAnswers(bodyToRecord(requestBody))
+      progress += 1
+    }
+
+    console.log(`Successfully submitted form answers; ${event.body}`)
     
     callback(null, {
       statusCode: 204,
@@ -60,13 +73,14 @@ module.exports.submit = async (event, context, callback) => {
     console.log(err)
 
     callback(null, {
-      statusCode: 500,
+      statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': true,
       },
       body: JSON.stringify({
-        err: err && err.message || 'Something went wrong!'
+        err,
+        progress
       })
     })
 
