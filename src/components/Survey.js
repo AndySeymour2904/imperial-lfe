@@ -117,6 +117,7 @@ function Survey() {
   const [step, setStep] = useState(-1)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [submissionError, setSubmissionError] = React.useState(null)
+  const [progressError, setProgressError] = React.useState(null)
 
   useEffect(
     () => {
@@ -159,18 +160,30 @@ function Survey() {
     setIsSubmitting(true)
 
     try {
-      await fetchUrl('https://iench1ourg.execute-api.eu-west-2.amazonaws.com/prod/form', {
+
+      const ERROR_CODES = [
+        "Failed to report and save your feedback. Please retry",
+        `We sent an email to ${formValues.excelleeName}, but didn't save your feedback or send you a confimation email`,
+        `We sent an email to ${formValues.excelleeName} and sent you a confirmation email, but didn't save your feedback`
+      ]
+      const res = await fetchUrl('https://iench1ourg.execute-api.eu-west-2.amazonaws.com/prod/form', {
         method: 'POST',
-        body: JSON.stringify(formValues),
+        body: JSON.stringify({...formValues, progressError}),
         headers: {
             'Content-Type': 'application/json'
         }
       })
+
+      // Lambda can only return error if we respond with 200
+      if (res.err) {
+        setProgressError(res.progress)
+        throw new Error(ERROR_CODES[res.progress])
+      }
       
       setSubmissionError(null)
       handleStepChange(1)()
     } catch (err) {
-      setSubmissionError(err)
+      setSubmissionError(err.message || "Something went wrong!")
     } finally {
       setIsSubmitting(false)
     }
@@ -224,7 +237,7 @@ function Survey() {
   }
 
   const handleKeyUp = (event) => {
-    if (event.keyCode === 13 && (step === - 1 || !questions[step].multiline || event.shiftKey) && step < numQuestions) {
+    if (event.which === 13 && (step === - 1 || !questions[step].multiline || event.shiftKey) && step < numQuestions) {
       if (step === -1 || formValues[questions[step].key]) {
         handleStepChange(1)()
       }
@@ -255,7 +268,7 @@ function Survey() {
           {!isSubmitting && submissionError && (
             <React.Fragment>
               <Typography>Error</Typography>
-              <Typography variant='body1'>{JSON.stringify(submissionError)}</Typography>
+              <Typography variant='body1'>{submissionError}</Typography>
               <Button color='primary' variant='contained' onClick={handleSubmit}>Retry</Button>
             </React.Fragment>
           )}
