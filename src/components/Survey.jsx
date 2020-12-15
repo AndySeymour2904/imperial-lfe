@@ -16,6 +16,8 @@ import { fetchUrl } from '../utils/fetch-utils'
 
 import NHSLogo from './NHSLogo' 
 
+import background from '../images/background.jpg'
+
 const useStyles = makeStyles({
   section: {
     display: 'flex',
@@ -28,11 +30,16 @@ const useStyles = makeStyles({
   },
   survey: {
     display: 'flex',
-    minHeight: '100vh',
     backgroundColor: 'lightblue',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: '100vw',
+    minHeight: '100vh',
+    backgroundImage: `url(${background})`,
+    backgroundPosition: 'center center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
   },
   introTextContainer: {
     maxHeight: '80vh',
