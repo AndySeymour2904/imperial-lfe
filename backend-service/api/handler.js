@@ -33,7 +33,6 @@ module.exports.submit = async (event, context, callback) => {
     const sesReporterParams = {
       Source: LFE_EMAIL,
       Template: "TestTemplateReporter",
-      ConfigurationSetName: "ConfigSet",
       Destination: {
         ToAddresses: [requestBody.email]
       },
