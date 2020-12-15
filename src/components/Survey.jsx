@@ -7,11 +7,14 @@ import {
   FormControlLabel,
   FormGroup,
   FormLabel,
+  Paper,
   TextField, 
   Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
 import { fetchUrl } from '../utils/fetch-utils'
+
+import NHSLogo from './NHSLogo' 
 
 const useStyles = makeStyles({
   section: {
@@ -19,19 +22,30 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
+    width: 'fit-content',
+    padding: 'max(2vw, 20px)',
+    maxWidth: '70vw',
   },
   survey: {
     display: 'flex',
     minHeight: '100vh',
+    backgroundColor: 'lightblue',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introTextContainer: {
+    maxHeight: '80vh',
+    overflowY: 'auto',
   },
   introText: {
-    padding: '10px',
+    padding: 'max(0.75vw, 15px)',
+    fontSize: "max(1vw, 15px)",
+    textAlign: 'center',
   },
   questionContainer: {
-    width: '80vw',
+    width: '50vw',
     minWidth: '200px',
-    maxWidth: '400px',
     flexDirection: 'column',
     display: 'flex',
     alignItems: 'center',
@@ -39,8 +53,8 @@ const useStyles = makeStyles({
   questionField: {
     width: '100%',
   },
-  nextBtn: {
-    marginTop: '15px',
+  responsiveMarginTop: {
+    marginTop: 'max(2vh, 20px)',
   },
   backBtnContainer: {
     width: '100%',
@@ -51,10 +65,14 @@ const useStyles = makeStyles({
     "&:hover": {
       color: 'grey',
     },
-    marginBottom: '50px',
+    marginBottom: 'max(3vh, 20px)',
+    fontSize: "max(1vw, 15px)",
   },
   submittingText: {
-    paddingTop: '20px'
+    paddingTop: 'max(2vh, 20px)',
+  },
+  responsiveFontSize: {
+    fontSize: "max(1vw, 15px)",
   }
 });
 
@@ -202,37 +220,40 @@ function Survey() {
   const renderQuestion = () => {
     const {key, question, type, multiline, options} = questions[step]
 
-    const isValid = (type !== 'checkbox' && formValues[key]) || (type === 'checkbox' && formValues[key].length > 0)
+    const isValid = (type !== 'checkbox' && formValues[key]) || (type === 'checkbox' && formValues[key] && formValues[key].length > 0)
 
     return (
-      <div className={classes.section}>
+      <Paper classes={{root: classes.section}}>
         <div className={classes.questionContainer}>
           <div className={classes.backBtnContainer}>
             <Typography variant='body2' classes={{root: classes.backBtn}} onClick={handleStepChange(-1)}>{'< Back'}</Typography>
           </div>
           {(type === 'email' || type === 'string') && (
-            <TextField classes={{root: classes.questionField}} multiline={multiline} autoComplete='off' autoFocus key={key} onChange={handleInputChange} 
-              name={key} label={question} value={formValues[key]} rows={8} rowsMax={15} />
+            <FormControl>
+              <Typography classes={{root: classes.responsiveFontSize}}>{question}</Typography>
+              <TextField classes={{root: classes.questionField}} multiline={multiline} autoComplete='off' autoFocus key={key} onChange={handleInputChange} 
+                name={key} value={formValues[key]} rows={8} rowsMax={15} InputProps={{className: classes.responsiveFontSize}}/>
+            </FormControl>
           )}
           {type === 'checkbox' && (
             <FormControl>
-              <FormLabel component="legend">{question}</FormLabel>
+              <FormLabel classes={{root: classes.responsiveFontSize}} component="legend">{question}</FormLabel>
               <FormGroup>
                 {options.map(option => (
                   <FormControlLabel
                     key={option.key}
-                    control={<Checkbox checked={formValues[key] && formValues[key].includes(option.key)} onChange={handleCheckboxChange(key)} name={option.key} />}
+                    control={<Checkbox checked={formValues[key] && formValues[key].includes(option.key)} onChange={handleCheckboxChange(key)} name={option.key} color='primary'/>}
                     label={option.displayName}
                   />
                 ))}
               </FormGroup>
             </FormControl>
           )}
-          <Button classes={{root: classes.nextBtn}} color='primary' variant='contained' disabled={!isValid} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
+          <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' disabled={!isValid} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
           {multiline && isValid && <Typography variant="body2">or press Shift + Enter {`\u21E7+\u21B5`}</Typography>}
           {!multiline && isValid && <Typography>or press Enter {`\u21B5`}</Typography>}
         </div>
-      </div>
+      </Paper>
     )
   }
 
@@ -244,32 +265,34 @@ function Survey() {
     }
   }
 
-
   return (
     <div className={classes.survey}>
+      <NHSLogo />
       {step === -1 && (
-        <div className={classes.section}>
-          <Typography classes={{root: classes.introText}}>Hello from the Imperial Learning from Excellence Team, and thank you for appreciating the work of a colleague today.</Typography>
-          <Typography classes={{root: classes.introText}}>We will write to the person you are reporting to let them know. Evidence shows that both being appreciated, and also appreciating someone else makes people feel happy - and that makes this time well spent.</Typography>
-          <Typography classes={{root: classes.introText}}>We also want to investigate good work. We want to understand the causes, learn and build on these good practices. You can tell us about anybody, from any team and any organisation.</Typography>
-          <Button color='primary' variant='contained' onClick={handleStepChange(1)}>Start</Button>
-        </div>
+        <Paper classes={{root: classes.section}}>
+          <div className={classes.introTextContainer}>
+            <Typography classes={{root: classes.introText}}>Hello from the Imperial Learning from Excellence Team, and thank you for appreciating the work of a colleague today.</Typography>
+            <Typography classes={{root: classes.introText}}>We will write to the person you are reporting to let them know. Evidence shows that both being appreciated, and also appreciating someone else makes people feel happy - and that makes this time well spent.</Typography>
+            <Typography classes={{root: classes.introText}}>We also want to investigate good work. We want to understand the causes, learn and build on these good practices. You can tell us about anybody, from any team and any organisation.</Typography>
+          </div>
+          <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleStepChange(1)}>Start</Button>
+        </Paper>
       )}
       {step >= 0 && step < numQuestions && renderQuestion()}
       {step === numQuestions && (
-        <div className={classes.section}>
+        <Paper classes={{root: classes.section}}>
           {!isSubmitting && !submissionError && (
             <React.Fragment>
               <Typography>Review and submit</Typography>
               <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
-              <Button color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
+              <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
             </React.Fragment>
           )}
           {!isSubmitting && submissionError && (
             <React.Fragment>
               <Typography>Error</Typography>
               <Typography variant='body1'>{submissionError}</Typography>
-              <Button color='primary' variant='contained' onClick={handleSubmit}>Retry</Button>
+              <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Retry</Button>
             </React.Fragment>
           )}
           {isSubmitting && (
@@ -278,13 +301,13 @@ function Survey() {
               <Typography className={classes.submittingText} variant='body1'>Submitting your responses, please wait</Typography>
             </React.Fragment>
           )}
-        </div>
+        </Paper>
       )}
       {step === numQuestions + 1 && (
-        <div className={classes.section}>
+        <Paper classes={{root: classes.section}}>
           <Typography>Thank you your response has been submitted</Typography>
-          <Button color='primary' variant='contained' onClick={handleRestart}>Restart</Button>
-        </div>
+          <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleRestart}>Restart</Button>
+        </Paper>
       )}
     </div>
   )

@@ -6,7 +6,7 @@ AWS.config.setPromisesDependency(require('bluebird'))
 const dynamoDb = new AWS.DynamoDB.DocumentClient()
 const SES = new AWS.SES({region: 'eu-west-2'})
 
-const LFE_EMAIL = "aseymour917@gmail.com"
+const LFE_EMAIL = "imperial.learningfromexcellence@nhs.net"
 
 module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
