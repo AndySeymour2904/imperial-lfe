@@ -88,9 +88,8 @@ module.exports.submit = async (event, context, callback) => {
 }
 
 const validateEmailAddress = (email) => {
-  // \todo - check with Mark about what a reasonable set of domains would be
-  // Adding gamil for testing purposes
-  validDomains = ['@nhs.net', '@gmail.com']
+  // Adding gmail for testing purposes
+  const validDomains = ['@nhs.net', '@gmail.com']
   for (let domain of validDomains) {
     if (email.endsWith(domain)) {
       return true

@@ -90,15 +90,19 @@ function Survey() {
   const questions = [{
       key: "email",
       question: "What is your email address?",
-      type: "email"
+      type: "email",
+      validation: "email",
+      localStorage: 'email'
     }, {
       key: "name",
       question: "What is your name?",
-      type: "string"
+      type: "string",
+      localStorage: 'name'
     }, {
       key: "excelleeEmail",
       question: "Email address of the person who has excelled",
-      type: "email"
+      type: "email",
+      validation: "email"
     }, {
       key: "excelleeName",
       question:  "Name of the person who has excelled",
@@ -139,10 +143,23 @@ function Survey() {
 
   // Load default state for questions
   const [formValues, setFormValues] = useState(questions.reduce((acc, cur) => {acc[cur.key] = cur.options ? [] : ''; return acc}, {}))
+  const [formError, setFormError] = useState(false)
+  const [formFieldSubmitted, setFormFieldSubmitted] = useState(false)
   const [step, setStep] = useState(-1)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [submissionError, setSubmissionError] = React.useState(null)
   const [progressError, setProgressError] = React.useState(null)
+
+  const validateEmailAddress = (email) => {
+    // Adding gmail for testing purposes
+    const validDomains = ['@nhs.net', '@gmail.com']
+    for (let domain of validDomains) {
+      if (email.endsWith(domain)) {
+        return true
+      }
+    }
+    return false
+  }
 
   useEffect(
     () => {
@@ -154,11 +171,28 @@ function Survey() {
     }
   )
 
+  useEffect(
+    () => {
+       // Load previous saved responses unless the field has already been populated
+      if(step >= 0 && questions[step].localStorage && !formValues[questions[step].key]) {
+        const prevSavedVal = localStorage.getItem(questions[step].localStorage)
+        setFormValues({...formValues, [questions[step].key]: prevSavedVal})
+      }
+    }, [step]
+  )
 
   const numQuestions = Object.keys(questions).length
 
   const handleInputChange = e => {
     setFormValues({...formValues, [e.target.name]: e.target.value})
+
+    if (questions[step].validation === 'email') {
+      if (validateEmailAddress(e.target.value)) {
+        setFormError(false)
+      } else {
+        setFormError('Email address must end in @nhs.net')
+      }
+    }
   }
 
   const handleCheckboxChange = key => e => {
@@ -216,6 +250,19 @@ function Survey() {
   }
 
   const handleStepChange = (increment) => () => {
+    // Only display errors after the user has had a crack at submitting
+    if (formError) {
+      setFormFieldSubmitted(true)
+      return
+    }
+
+    // Save tbe users response i.e email and name when they submit those answers
+    if(step >= 0 && questions[step].localStorage) {
+      localStorage.setItem(questions[step].localStorage, formValues[questions[step].key])
+    }
+
+    setFormError(false)
+    setFormFieldSubmitted(false)
     setStep(step + increment)
   }
 
@@ -239,7 +286,8 @@ function Survey() {
             <FormControl>
               <Typography classes={{root: classes.responsiveFontSize}}>{question}</Typography>
               <TextField classes={{root: classes.questionField}} multiline={multiline} autoComplete='off' autoFocus key={key} onChange={handleInputChange} 
-                name={key} value={formValues[key]} rows={8} rowsMax={15} InputProps={{className: classes.responsiveFontSize}}/>
+                name={key} value={formValues[key]} rows={8} rowsMax={15} InputProps={{className: classes.responsiveFontSize}}
+                helperText={formFieldSubmitted && formError} error={formFieldSubmitted && formError} />
             </FormControl>
           )}
           {type === 'checkbox' && (
