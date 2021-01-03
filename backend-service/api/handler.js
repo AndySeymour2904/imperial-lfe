@@ -20,6 +20,14 @@ module.exports.submit = async (event, context, callback) => {
       console.log(`Refusing to process response, invalid email; ${event.body}`)
       throw new Error('Email address is not valid')
     }
+
+    // SES API demands that double quotes be escaped in the JSON, so do stringify twice and remove the extra "s at the start and end
+    let templateData = JSON.stringify(JSON.stringify(requestBody))
+
+    templateData = templateData.substring(1, templateData.length - 1)
+
+    console.log("Template data: ")
+    console.log(templateData)
     
     const sesExcelleeParams = {
       Template: "TestTemplate",
@@ -27,7 +35,7 @@ module.exports.submit = async (event, context, callback) => {
         ToAddresses: [requestBody.excelleeEmail]
       },
       Source: LFE_EMAIL,
-      TemplateData: JSON.stringify(requestBody)
+      TemplateData: templateData
     }
 
     const sesReporterParams = {
@@ -36,7 +44,7 @@ module.exports.submit = async (event, context, callback) => {
       Destination: {
         ToAddresses: [requestBody.email]
       },
-      TemplateData: JSON.stringify(requestBody)
+      TemplateData: templateData
     }
 
     console.log(sesExcelleeParams)

@@ -1,0 +1,8 @@
+{
+    "Template": {
+      "TemplateName": "BasicTemplate",
+      "SubjectPart": "Greetings!",
+      "HtmlPart": "<p>Hello {{name}}, someone said that you showed the following excellence</p>",
+      "TextPart": "Hello {{name}}, someone said that you showed the following excellence"
+    }
+  }

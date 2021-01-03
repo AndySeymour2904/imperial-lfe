@@ -174,7 +174,7 @@ function Survey() {
   useEffect(
     () => {
        // Load previous saved responses unless the field has already been populated
-      if(step >= 0 && questions[step].localStorage && !formValues[questions[step].key]) {
+      if(step >= 0 && questions[step] && questions[step].localStorage && !formValues[questions[step].key]) {
         const prevSavedVal = localStorage.getItem(questions[step].localStorage)
         setFormValues({...formValues, [questions[step].key]: prevSavedVal})
       }
@@ -186,7 +186,7 @@ function Survey() {
   const handleInputChange = e => {
     setFormValues({...formValues, [e.target.name]: e.target.value})
 
-    if (questions[step].validation === 'email') {
+    if (questions[step] && questions[step].validation === 'email') {
       if (validateEmailAddress(e.target.value)) {
         setFormError(false)
       } else {
@@ -257,7 +257,7 @@ function Survey() {
     }
 
     // Save tbe users response i.e email and name when they submit those answers
-    if(step >= 0 && questions[step].localStorage) {
+    if(step >= 0 && questions[step] && questions[step].localStorage) {
       localStorage.setItem(questions[step].localStorage, formValues[questions[step].key])
     }
 
@@ -313,7 +313,7 @@ function Survey() {
   }
 
   const handleKeyUp = (event) => {
-    if (event.which === 13 && (step === - 1 || !questions[step].multiline || event.shiftKey) && step < numQuestions) {
+    if (event.which === 13 && questions[step] && (step === - 1 || !questions[step].multiline || event.shiftKey) ) {
       if (step === -1 || formValues[questions[step].key]) {
         handleStepChange(1)()
       }

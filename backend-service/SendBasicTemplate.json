@@ -1,0 +1,8 @@
+{
+    "Source": "aseymour917@gmail.com",
+    "Template": "BasicTemplate",
+    "Destination": {
+        "ToAddresses": [ "aseymour917@gmail.com" ]
+    },
+    "TemplateData": "{ \"name\":\"Aleja\\\"ndro\" }"
+}
