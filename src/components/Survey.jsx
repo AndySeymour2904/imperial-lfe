@@ -330,6 +330,8 @@ function Survey() {
     }
   }
 
+  // const testVals = { "email": "andy@nhs.net", "name": "Andy", "excelleeEmail": "Jack@nhs.net", "excelleeName": "Jack", "excelleePosition": "Developer", "excellence": "Developing", "whatCanWeLearn": "Loads\n", "valuesDemonstrated": [ "kind", "expert" ] }
+
   return (
     <div className={classes.survey}>
       <NHSLogo />
@@ -349,7 +351,7 @@ function Survey() {
           {!isSubmitting && !submissionError && (
             <React.Fragment>
               <Typography>Review and submit</Typography>
-              <Typography variant='body1'>{JSON.stringify(testVals, 2, "\n")}</Typography>
+              <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
               <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
             </React.Fragment>
           )}
