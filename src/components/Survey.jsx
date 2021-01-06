@@ -148,6 +148,7 @@ function Survey() {
   const [step, setStep] = useState(-1)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [submissionError, setSubmissionError] = React.useState(null)
+  const [progress, setProgress] = React.useState(0)
   const [progressError, setProgressError] = React.useState(null)
 
   const validateEmailAddress = (email) => {
@@ -175,24 +176,29 @@ function Survey() {
     () => {
        // Load previous saved responses unless the field has already been populated
       if(step >= 0 && questions[step] && questions[step].localStorage && !formValues[questions[step].key]) {
-        const prevSavedVal = localStorage.getItem(questions[step].localStorage)
+        const prevSavedVal = localStorage.getItem(questions[step].localStorage) || ''
         setFormValues({...formValues, [questions[step].key]: prevSavedVal})
       }
     }, [step]
+  )
+
+  // Validation when we change values or step
+  useEffect(
+    () => {
+      if (questions[step] && questions[step].validation === 'email') {
+        if (validateEmailAddress(formValues[questions[step].key])) {
+          setFormError(false)
+        } else {
+          setFormError('Email address must end in @nhs.net')
+        }
+      }
+    }, [formValues, step]
   )
 
   const numQuestions = Object.keys(questions).length
 
   const handleInputChange = e => {
     setFormValues({...formValues, [e.target.name]: e.target.value})
-
-    if (questions[step] && questions[step].validation === 'email') {
-      if (validateEmailAddress(e.target.value)) {
-        setFormError(false)
-      } else {
-        setFormError('Email address must end in @nhs.net')
-      }
-    }
   }
 
   const handleCheckboxChange = key => e => {
@@ -222,12 +228,12 @@ function Survey() {
 
       const ERROR_CODES = [
         "Failed to report and save your feedback. Please retry",
-        `We sent an email to ${formValues.excelleeName}, but didn't save your feedback or send you a confimation email`,
-        `We sent an email to ${formValues.excelleeName} and sent you a confirmation email, but didn't save your feedback`
+        `We saved your feedback, but failed to send a congratulations to ${formValues.excelleeName} or send you a confirmation email`,
+        `We saved your feedback and sent an email to ${formValues.excelleeName}, but didn't send you a confirmation email`
       ]
       const res = await fetchUrl('https://iench1ourg.execute-api.eu-west-2.amazonaws.com/prod/form', {
         method: 'POST',
-        body: JSON.stringify({...formValues, progressError}),
+        body: JSON.stringify({...formValues, progress}),
         headers: {
             'Content-Type': 'application/json'
         }
@@ -235,8 +241,11 @@ function Survey() {
 
       // Lambda can only return error if we respond with 200
       if (res.err) {
-        setProgressError(res.progress)
-        throw new Error(ERROR_CODES[res.progress])
+        setProgress(res.progress)
+
+        const progressError = ERROR_CODES[res.progress]
+        setProgressError(progressError)
+        throw new Error(progressError)
       }
       
       setSubmissionError(null)
@@ -251,7 +260,8 @@ function Survey() {
 
   const handleStepChange = (increment) => () => {
     // Only display errors after the user has had a crack at submitting
-    if (formError) {
+
+    if (increment > 0 && formError) {
       setFormFieldSubmitted(true)
       return
     }
@@ -339,7 +349,7 @@ function Survey() {
           {!isSubmitting && !submissionError && (
             <React.Fragment>
               <Typography>Review and submit</Typography>
-              <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
+              <Typography variant='body1'>{JSON.stringify(testVals, 2, "\n")}</Typography>
               <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
             </React.Fragment>
           )}
@@ -347,7 +357,7 @@ function Survey() {
             <React.Fragment>
               <Typography>Error</Typography>
               <Typography variant='body1'>{submissionError}</Typography>
-              <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Retry</Button>
+              <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Retry failed steps</Button>
             </React.Fragment>
           )}
           {isSubmitting && (

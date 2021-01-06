@@ -47,7 +47,7 @@ This deploys the backend through API Gateway, DynamoDB, Lambdas and CloudFormati
 
 ```
 aws ses delete-template --template-name TestTemplate
-aws ses create-template --cli-input-json file://backend-service/TestTemplate.json
+aws ses create-template --cli-input-json file://backend-service/SES/TestTemplate.json
 ```
 
 View:

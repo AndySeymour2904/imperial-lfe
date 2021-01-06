@@ -11,6 +11,8 @@ const LFE_EMAIL = "imperial.learningfromexcellence@nhs.net"
 module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
 
+  console.log(requestBody)
+
   // Allow retrying at specific points
   let progress = requestBody.progress || 0
 
@@ -21,10 +23,11 @@ module.exports.submit = async (event, context, callback) => {
       throw new Error('Email address is not valid')
     }
 
-    // SES API demands that double quotes be escaped in the JSON, so do stringify twice and remove the extra "s at the start and end
-    let templateData = JSON.stringify(JSON.stringify(requestBody))
-
-    templateData = templateData.substring(1, templateData.length - 1)
+    let templateData = JSON.stringify({
+      name: requestBody.name,
+      excelleeName: requestBody.excelleeName,
+      excellence: requestBody.excellence
+    })
 
     console.log("Template data: ")
     console.log(templateData)
@@ -51,17 +54,17 @@ module.exports.submit = async (event, context, callback) => {
     console.log(sesReporterParams)
 
     if (progress === 0) {
-      await SES.sendTemplatedEmail(sesExcelleeParams).promise()
+      await submitFormAnswers(bodyToRecord(requestBody))
       progress += 1
     }
     
     if (progress === 1) {
-      await SES.sendTemplatedEmail(sesReporterParams).promise() 
+      await SES.sendTemplatedEmail(sesExcelleeParams).promise()
       progress += 1
     }
 
     if (progress === 2) {
-      await submitFormAnswers(bodyToRecord(requestBody))
+      await SES.sendTemplatedEmail(sesReporterParams).promise() 
       progress += 1
     }
 

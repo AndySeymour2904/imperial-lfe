@@ -4,5 +4,5 @@
     "Destination": {
         "ToAddresses": [ "aseymour917@gmail.com" ]
     },
-    "TemplateData": "{}"
+    "TemplateData": "{ \"name\":\"Andy\", \"excelleeName\": \"Dave\", \"excellence\": \"Work\" }"
 }
