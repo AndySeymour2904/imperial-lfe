@@ -18,6 +18,8 @@ import NHSLogo from './NHSLogo'
 
 import background from '../images/background.jpg'
 
+import EditIcon from '@material-ui/icons/Edit'
+
 const useStyles = makeStyles({
   section: {
     display: 'flex',
@@ -62,6 +64,34 @@ const useStyles = makeStyles({
   },
   responsiveMarginTop: {
     marginTop: 'max(2vh, 20px)',
+  },
+  responsiveMarginBottom: {
+    marginBottom: 'max(2vh, 20px)',
+  },
+  questionReview: {
+    marginBottom: 'max(1vh, 10px)',
+    padding: 'max(1vh, 10px)',
+    borderRadius: 'max(1vh, 10px)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    cursor: 'pointer',
+    '&:hover': {
+      background: '#dbefff',
+
+      "& $questionReviewEditIcon": {
+        color: "#1976d2"
+      }
+    },
+  },
+  questionReviewQuestion: {
+    paddingRight: 'max(1vh, 10px)',
+  },
+  questionReviewEditIcon: {
+  },
+  questionsReviewContainer: {
+    maxHeight: '70vh',
+    overflowY: 'auto',
   },
   backBtnContainer: {
     width: '100%',
@@ -146,10 +176,10 @@ function Survey() {
   const [formError, setFormError] = useState(false)
   const [formFieldSubmitted, setFormFieldSubmitted] = useState(false)
   const [step, setStep] = useState(-1)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [submissionError, setSubmissionError] = React.useState(null)
-  const [progress, setProgress] = React.useState(0)
-  const [progressError, setProgressError] = React.useState(null)
+  const [inReview, setInReview] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [submissionError, setSubmissionError] = useState(null)
 
   const validateEmailAddress = (email) => {
     // Adding gmail for testing purposes
@@ -243,9 +273,9 @@ function Survey() {
       if (res.err) {
         setProgress(res.progress)
 
-        const progressError = ERROR_CODES[res.progress]
-        setProgressError(progressError)
-        throw new Error(progressError)
+        const submissionError = ERROR_CODES[res.progress]
+        setSubmissionError(submissionError)
+        throw new Error(submissionError)
       }
       
       setSubmissionError(null)
@@ -261,7 +291,7 @@ function Survey() {
   const handleStepChange = (increment) => () => {
     // Only display errors after the user has had a crack at submitting
 
-    if (increment > 0 && formError) {
+    if ((increment > 0 || inReview) && formError) {
       setFormFieldSubmitted(true)
       return
     }
@@ -273,12 +303,22 @@ function Survey() {
 
     setFormError(false)
     setFormFieldSubmitted(false)
-    setStep(step + increment)
+
+    if (inReview) {
+      setStep(questions.length)
+    } else {
+      setStep(step + increment)
+    }
   }
 
   const handleRestart = () => {
     setStep(-1)
     setFormValues({})
+  }
+
+  const editQuestion = (index) => {
+    setInReview(true)
+    setStep(index)
   }
 
   const renderQuestion = () => {
@@ -289,9 +329,11 @@ function Survey() {
     return (
       <Paper classes={{root: classes.section}}>
         <div className={classes.questionContainer}>
-          <div className={classes.backBtnContainer}>
-            <Typography variant='body2' classes={{root: classes.backBtn}} onClick={handleStepChange(-1)}>{'< Back'}</Typography>
-          </div>
+          {!inReview && (
+            <div className={classes.backBtnContainer}>
+              <Typography variant='body2' classes={{root: classes.backBtn}} onClick={handleStepChange(-1)}>{'< Back'}</Typography>
+            </div>
+          )}
           {(type === 'email' || type === 'string') && (
             <FormControl>
               <Typography classes={{root: classes.responsiveFontSize}}>{question}</Typography>
@@ -314,7 +356,7 @@ function Survey() {
               </FormGroup>
             </FormControl>
           )}
-          <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' disabled={!isValid} onClick={handleStepChange(1)}>Next {`\u2B95`}</Button>
+          <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' disabled={!isValid} onClick={handleStepChange(1)}>{inReview ? 'Finish' : 'Next'} {inReview ? `\u2713` : `\u2B95`}</Button>
           {multiline && isValid && <Typography variant="body2">or press Shift + Enter {`\u21E7+\u21B5`}</Typography>}
           {!multiline && isValid && <Typography>or press Enter {`\u21B5`}</Typography>}
         </div>
@@ -350,14 +392,24 @@ function Survey() {
         <Paper classes={{root: classes.section}}>
           {!isSubmitting && !submissionError && (
             <React.Fragment>
-              <Typography>Review and submit</Typography>
-              <Typography variant='body1'>{JSON.stringify(formValues, 2, "\n")}</Typography>
+              <Typography variant='h3' className={classes.responsiveMarginBottom}>Review and submit</Typography>
+              <div className={classes.questionsReviewContainer}>
+                {questions.map((question, index) => (
+                  <div className={classes.questionReview} onClick={() => editQuestion(index)}>
+                    <div className={classes.questionReviewQuestion}>
+                      <Typography variant='h6'>{question.question}</Typography>
+                      <Typography variant='body1'>{Array.isArray(formValues[question.key]) ? formValues[question.key].join(', ') : formValues[question.key]}</Typography>
+                    </div>
+                    <EditIcon className={classes.questionReviewEditIcon} />
+                  </div>
+                ))}
+              </div>
               <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Submit</Button>
             </React.Fragment>
           )}
           {!isSubmitting && submissionError && (
             <React.Fragment>
-              <Typography>Error</Typography>
+              <Typography variant='h3'>Error</Typography>
               <Typography variant='body1'>{submissionError}</Typography>
               <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleSubmit}>Retry failed steps</Button>
             </React.Fragment>
@@ -365,14 +417,14 @@ function Survey() {
           {isSubmitting && (
             <React.Fragment>
               <CircularProgress size={120} />
-              <Typography className={classes.submittingText} variant='body1'>Submitting your responses, please wait</Typography>
+              <Typography variant='h3' className={classes.submittingText}>Submitting your responses, please wait</Typography>
             </React.Fragment>
           )}
         </Paper>
       )}
       {step === numQuestions + 1 && (
         <Paper classes={{root: classes.section}}>
-          <Typography>Thank you your response has been submitted</Typography>
+          <Typography variant='h3'>Thank you your response has been submitted</Typography>
           <Button classes={{root: classes.responsiveMarginTop, label: classes.responsiveFontSize}} color='primary' variant='contained' onClick={handleRestart}>Restart</Button>
         </Paper>
       )}
