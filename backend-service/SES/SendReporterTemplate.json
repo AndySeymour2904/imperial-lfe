@@ -1,0 +1,8 @@
+{
+    "Source": "aseymour917@gmail.com",
+    "Template": "ReporterTemplate",
+    "Destination": {
+        "ToAddresses": [ "aseymour917@gmail.com" ]
+    },
+    "TemplateData": "{ \"name\":\"Andy\", \"excelleeName\": \"Jack\", \"excellence\": \"Work\", \"date\":\"10th Janurary\", \"url\": \"http://imperial-lfe.s3-website.eu-west-2.amazonaws.com/\", \"excelleeEmail\": \"aseymour917@gmail.com\" }"
+}

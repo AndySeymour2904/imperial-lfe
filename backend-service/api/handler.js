@@ -8,6 +8,8 @@ const SES = new AWS.SES({region: 'eu-west-2'})
 
 const LFE_EMAIL = "imperial.learningfromexcellence@nhs.net"
 
+const LFE_URL = "http://imperial-lfe.s3-website.eu-west-2.amazonaws.com/"
+
 module.exports.submit = async (event, context, callback) => {
   const requestBody = JSON.parse(event.body)
 
@@ -26,7 +28,10 @@ module.exports.submit = async (event, context, callback) => {
     let templateData = JSON.stringify({
       name: requestBody.name,
       excelleeName: requestBody.excelleeName,
-      excellence: requestBody.excellence
+      excelleeEmail: requestBody.excelleeEmail,
+      excellence: requestBody.excellence,
+      url: LFE_URL,
+      date: new Date().toDateString()
     })
 
     console.log("Template data: ")

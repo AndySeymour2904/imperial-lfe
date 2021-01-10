@@ -1,8 +1,0 @@
-{
-  "Template": {
-    "TemplateName": "TestTemplateReporter",
-    "SubjectPart": "Greetings, {{name}}!",
-    "HtmlPart": "<h1>Hello {{name}},</h1><p>Thank you for submitting excellence feedback. We have sent an email to {excelleeName}.</p>",
-    "TextPart": "Hello {{name}},\r\nThank you for submitting excellence feedback. We have sent an email to {excelleeName}."
-  }
-}

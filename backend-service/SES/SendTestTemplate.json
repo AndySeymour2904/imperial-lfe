@@ -1,8 +1,0 @@
-{
-    "Source": "aseymour917@gmail.com",
-    "Template": "TestTemplate",
-    "Destination": {
-        "ToAddresses": [ "aseymour917@gmail.com" ]
-    },
-    "TemplateData": "{ \"name\":\"Andy\", \"excelleeName\": \"Dave\", \"excellence\": \"Work\" }"
-}

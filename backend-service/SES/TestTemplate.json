@@ -1,8 +1,0 @@
-{
-  "Template": {
-    "TemplateName": "TestTemplate",
-    "SubjectPart": "Greetings, {{excelleeName}}!",
-    "HtmlPart": "<h1>Hello {{excelleeName}},</h1><p>{{name}} said that you showed the following execellence; {{excellence}}.</p>",
-    "TextPart": "Dear {{excelleeName}},\r\n{{name}} said that you showed the following execellence; {{excellence}}."
-  }
-}
